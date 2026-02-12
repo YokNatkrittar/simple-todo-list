@@ -83,7 +83,24 @@ app.put('/api/todos/:id', (req, res) => {
     return res.status(404).json({ error: 'Todo not found' });
   }
 
-  // Toggle completion
+  // If a text field is provided in the request body, update the text
+  if (req.body && typeof req.body.text === 'string') {
+    const newText = req.body.text.trim();
+    if (newText === '') {
+      return res.status(400).json({ error: 'Todo text cannot be empty' });
+    }
+
+    todos[todoIndex].text = newText;
+    todos[todoIndex].updatedAt = new Date().toISOString();
+
+    if (!writeTodos(todos)) {
+      return res.status(500).json({ error: 'Failed to update todo' });
+    }
+
+    return res.json(todos[todoIndex]);
+  }
+
+  // Otherwise, toggle completion (backwards-compatible behavior)
   todos[todoIndex].completed = !todos[todoIndex].completed;
 
   // Persist changes

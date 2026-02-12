@@ -126,6 +126,49 @@ h1 {
     background: #ff3838;
 }
 
+.edit-btn {
+    background: #4b7bec;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.edit-btn:hover {
+    background: #3a63d6;
+}
+
+.edit-input {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.save-btn {
+    background: #2ed573;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.cancel-btn {
+    background: #ced6e0;
+    color: #333;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
 .stats {
     display: flex;
     justify-content: space-between;

@@ -103,7 +103,7 @@ function renderTodos() {
         todoList.innerHTML = '<div class="empty-state">No todos yet. Add one above!</div>';
     } else {
         todoList.innerHTML = todos.map(todo => `
-            <div class="todo-item ${todo.completed ? 'completed' : ''}">
+            <div class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
                 <input 
                     type="checkbox" 
                     class="todo-checkbox" 
@@ -111,12 +111,99 @@ function renderTodos() {
                     onchange="toggleTodo(${todo.id})"
                 />
                 <span class="todo-text">${escapeHtml(todo.text)}</span>
+                <button class="edit-btn" onclick="startEdit(${todo.id})">Edit</button>
                 <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
             </div>
         `).join('');
     }
     
     updateStats();
+}
+
+// Start inline editing for a todo item
+function startEdit(id) {
+    const item = document.querySelector(`.todo-item[data-id="${id}"]`);
+    if (!item) return;
+
+    const textSpan = item.querySelector('.todo-text');
+    const originalText = textSpan ? textSpan.textContent : '';
+
+    // Replace text with input
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-input';
+    input.value = originalText;
+
+    textSpan.replaceWith(input);
+
+    // Hide delete/edit buttons while editing
+    const editBtn = item.querySelector('.edit-btn');
+    const deleteBtn = item.querySelector('.delete-btn');
+    if (editBtn) editBtn.style.display = 'none';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+
+    // Add save/cancel controls
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.className = 'save-btn';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'cancel-btn';
+
+    const controls = document.createElement('span');
+    controls.className = 'edit-controls';
+    controls.appendChild(saveBtn);
+    controls.appendChild(cancelBtn);
+    item.appendChild(controls);
+
+    input.focus();
+
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') saveBtn.click();
+        if (e.key === 'Escape') cancelBtn.click();
+    });
+
+    saveBtn.addEventListener('click', async () => {
+        const newText = input.value.trim();
+        if (!newText) {
+            alert('Please enter a todo');
+            input.focus();
+            return;
+        }
+        await editTodo(id, newText);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        renderTodos();
+    });
+}
+
+// Edit todo text via API
+async function editTodo(id, newText) {
+    try {
+        const response = await fetch(`${API_BASE}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: newText }),
+        });
+
+        if (response.ok) {
+            const updatedTodo = await response.json();
+            const index = todos.findIndex(t => t.id === id);
+            if (index !== -1) {
+                todos[index] = updatedTodo;
+                renderTodos();
+            }
+        } else {
+            const err = await response.json().catch(() => ({}));
+            alert(err.error || 'Failed to update todo');
+        }
+    } catch (error) {
+        console.error('Error editing todo:', error);
+        alert('Failed to update todo');
+    }
 }
 
 // Update statistics
